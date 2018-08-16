@@ -4,24 +4,24 @@
 <head>
     <title>Title</title>
 </head>
-<body>
-<button type="button" onclick="logout()">Log out</button>
-<button type="button" onclick="startGame()">Start Game</button>
+    <body>
+        <button type="button" onclick="logout()">Log out</button>
+        <button type="button" onclick="startGame()">Start Game</button>
 
-<script>
-    function logout() {
-        fetch("<c:url value='/api/auth/logout'/>", {"method": "POST"})
-            .then(function (response) {
-                location.href = "/";
-            });
-    }
+        <script>
+            function logout() {
+                fetch("<c:url value='/api/auth/logout'/>", {"method": "POST"})
+                    .then(function (response) {
+                        location.href = "/";
+                    });
+            }
 
-    function startGame() {
-        fetch("<c:url value='/api/game'/>", {"method": "POST"})
-            .then(function (response) {
-                location.href = "/app/placement.jsp";
-            });
-    }
-</script>
-</body>
+            function startGame() {
+                fetch("<c:url value='/api/game'/>", {"method": "POST"})
+                    .then(function (response) {
+                        location.href = "/app/placement.jsp";
+                    });
+            }
+        </script>
+    </body>
 </html>

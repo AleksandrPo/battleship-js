@@ -33,6 +33,8 @@ public class Game {
         }
     }
 
+
+
     public void setPlayerActive(User player, boolean active) {
         if (player.equals(player1)) {
             player1Active = active;
