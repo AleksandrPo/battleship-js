@@ -93,7 +93,7 @@ public class GameApi {
     @Path("/status")
     public GameDto getGameStatus() {
         User currentUser = userStore.getCurrentUser();
-        Optional<Game> game = gameStore.getOpenGameFor(currentUser);
+        Optional<Game> game = gameStore.getLastGameFor(currentUser);
         return game.map(g -> {
             GameDto dto = new GameDto();
             dto.setStatus(g.getStatus());
@@ -103,51 +103,58 @@ public class GameApi {
     }
 
     @POST
-    @RolesAllowed({"ADMIN","USER"})
+    @RolesAllowed({"ADMIN", "USER"})
     @Path("/fire/{address}")
     public void doFire(@PathParam("address") String address) {
         log.info("Firing to " + address);
         User currentUser = userStore.getCurrentUser();
         Optional<Game> game = gameStore.getOpenGameFor(currentUser);
         game.ifPresent(g -> {
-
-            User enemy;
-            if(g.getPlayer1().equals(currentUser)){
-                enemy = g.getPlayer2();
-            } else if (g.getPlayer2().equals(currentUser)){
-                enemy = g.getPlayer1();
-            } else {
-                throw new IllegalArgumentException();
-            }
-
-            Optional<Cell> enemyCell;
-            enemyCell = gameStore.getCell(g, enemy, false, address);
-
-            if(enemyCell.equals("SHIP")){
-            }
-
             boolean p1a = g.isPlayer1Active();
-            g.setPlayer1Active(!p1a);
-            g.setPlayer2Active(p1a);
+
+            User enemy = gameStore.findEnemy(currentUser, g);
+            Optional<Cell> enemyCell = gameStore.getOpponentCell(g, enemy, false, address);
+            if(enemyCell.isPresent()){
+
+                if(enemyCell.get().getState().equals(CellState.HIT)){
+                    g.setPlayer1Active(!p1a);
+                    g.setPlayer2Active(p1a);
+                }
+                gameStore.setCellState(g, enemy, false, address, CellState.HIT);
+                gameStore.setCellState(g, currentUser, true, address, CellState.HIT);
+                checkFinishState(g, enemy);
+            } else {
+                Cell newCell = new Cell();
+                newCell.setGame(g);
+                newCell.setUser(enemy);
+                newCell.setAddress(address);
+                newCell.setTargetArea(true);
+                newCell.setState(CellState.MISS);
+                em.persist(newCell);
+
+                newCell.setGame(g);
+                newCell.setUser(enemy);
+                newCell.setAddress(address);
+                newCell.setTargetArea(false);
+                newCell.setState(CellState.MISS);
+                em.persist(newCell);
+
+                g.setPlayer1Active(!p1a);
+                g.setPlayer2Active(p1a);
+            }
+
         });
     }
 
-    //change state of opposite player cells
-   /* public void getAdress(Game game, User player, boolean targetArea, String address) {
-        Optional<Cell> cell = em.createQuery(
-                "select c from Cell c " +
-                        "where c.game = :game " +
-                        "  and c.user = :user " +
-                        "  and c.targetArea = :target " +
-                        "  and c.address = :address", Cell.class)
-                .setParameter("game", game)
-                .setParameter("user", player)
-                .setParameter("target", targetArea)
-                .setParameter("address", address)
-                .getResultStream()
-                .findFirst();
-
-    }*/
+    private void checkFinishState(Game game, User player) {
+        boolean hasShips = gameStore.getCells(game, player)
+                .stream()
+                .filter(c -> !c.isTargetArea())
+                .anyMatch(c -> c.getState() == CellState.SHIP);
+        if (!hasShips) {
+            game.setStatus(GameStatus.FINISHED);
+        }
+    }
 
     @GET
     @RolesAllowed({"ADMIN", "USER"})
@@ -162,12 +169,20 @@ public class GameApi {
                     .collect(Collectors.toList());
         }).orElseThrow(IllegalStateException::new);
     }
+
     private CellStateDto convertToDto(Cell cell) {
         CellStateDto dto = new CellStateDto();
         dto.setTargetArea(cell.isTargetArea());
         dto.setAddress(cell.getAddress());
         dto.setState(cell.getState());
         return dto;
+    }
+
+    @GET
+    @RolesAllowed({"ADMIN", "USER"})
+    @Path("/results")
+    public void results(){
+
     }
 
 

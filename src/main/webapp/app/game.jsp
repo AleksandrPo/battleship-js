@@ -10,7 +10,7 @@
                 border-collapse: collapse;
             }
             table, th, td {
-                border: 1px solid black;
+                border: 1px solid gray;
             }
             td {
                 width: 20px;
@@ -105,6 +105,9 @@
                         window.setTimeout(function () {
                             checkStatus();
                         }, 1000);
+                    } else if(game.status === "FINISHED") {
+                        location.href = "<c:url value='/app/result.jsp'/>";
+                        return;
                     } else {
                         return;
                     }
