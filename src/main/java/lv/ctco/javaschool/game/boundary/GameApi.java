@@ -126,7 +126,7 @@ public class GameApi {
             } else {
                 Cell newCell = new Cell();
                 newCell.setGame(g);
-                newCell.setUser(enemy);
+                newCell.setUser(currentUser);
                 newCell.setAddress(address);
                 newCell.setTargetArea(true);
                 newCell.setState(CellState.MISS);

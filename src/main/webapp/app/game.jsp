@@ -16,7 +16,6 @@
                 width: 20px;
                 text-align: center;
             }
-
             td.SHIP {
                 background-color: black;
             }

@@ -9,10 +9,12 @@
 
     <body onload="checkStatus()">
         <div>
-            <h1>RESULTS</h1>
-            <h1 id="WIN" class="w3-hide">YOU WIN</h1>
-            <h1 id="LOOSE" class="w3-hide">YOU LOOSE</h1>
-
+            <h1 align="center">RESULTS</h1>
+            <h1 align="center" id="WIN" class="w3-hide">YOU WIN</h1>
+            <h1 align="center" id="LOSE" class="w3-hide">YOU LOSE</h1>
+            <div align="center">
+                <button type="button" onclick="startGame()">START NEW GAME</button>
+            </div>
         </div>
 
         <script>
@@ -31,13 +33,20 @@
                     console.log(JSON.stringify(game));
                     if (game.status === "FINISHED" && game.playerActive) {
                         document.getElementById("WIN").classList.remove("w3-hide");
-                        document.getElementById("LOOSE").classList.add("w3-hide");
+                        document.getElementById("LOSE").classList.add("w3-hide");
                     } else {
                         document.getElementById("WIN").classList.add("w3-hide");
-                        document.getElementById("LOOSE").classList.remove("w3-hide");
+                        document.getElementById("LOSE").classList.remove("w3-hide");
                         window.setTimeout(function() {checkStatus();}, 1000);
                     }
                 });
+            }
+
+            function startGame() {
+                fetch("<c:url value='/api/game'/>", {"method": "POST"})
+                    .then(function (response) {
+                        location.href = "/app/placement.jsp";
+                    });
             }
 
         </script>
